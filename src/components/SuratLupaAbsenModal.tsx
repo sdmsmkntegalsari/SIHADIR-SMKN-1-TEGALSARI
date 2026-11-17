@@ -11,7 +11,6 @@ import {
 import {
   downloadSuratLupaAbsenPdf,
   getFullPegawaiName,
-  isUsingDefaultTtdBlock,
 } from '../utils/lupaAbsenPdf';
 import { LogoPemprovJatim, LogoSmknTegalsari } from './KopSuratLogos';
 
@@ -37,11 +36,10 @@ const SuratA4Content: React.FC<{
   const tglKejadianIndo = formatJakartaDateIndo(item.tanggalKejadian);
   const tglPengajuanIndo = formatJakartaDateIndo(item.tanggalPengajuan);
   const waktuText = getJenisLupaAbsenSuratText(item.jenisPresensi);
-  const namaKepsek = settings.namaKepalaSekolah.trim();
-  const pangkatKepsek = (settings.pangkatKepalaSekolah || '').trim();
-  const nipKepsek = settings.nipKepalaSekolah.trim();
+  const namaKepsek = settings.namaKepalaSekolah.trim() || INFO_SEKOLAH.kepalaSekolah;
+  const nipKepsek = settings.nipKepalaSekolah.trim() || INFO_SEKOLAH.nipKepalaSekolah;
   const isApproved = item.status === 'disetujui';
-  const useDefaultFullBlock = isUsingDefaultTtdBlock(settings);
+  const ttdSrc = settings.ttdKepsekCustomUrl || INFO_SEKOLAH.ttdKepsekDefaultUrl;
 
   return (
     <div
@@ -157,42 +155,30 @@ const SuratA4Content: React.FC<{
       <div className="mt-10 grid grid-cols-2 gap-8 text-[12pt] break-inside-avoid">
         {/* Sebelah Kiri: Kepala Sekolah (TTD + Stempel otomatis muncul bila status disetujui) */}
         <div className="text-left">
-          <div className="h-[1.55em]" aria-hidden="true" />
-          {isApproved && useDefaultFullBlock ? (
-            <img
-              src={INFO_SEKOLAH.ttdKepsekDefaultUrl}
-              alt="Mengetahui Kepala SMK Negeri 1 Tegalsari - Candra Suro Laksono, S.Pi"
-              className="w-[248px] max-w-full h-auto object-contain mix-blend-multiply -ml-2 -mt-1 select-none"
-            />
-          ) : (
-            <>
-              <p>Mengetahui,</p>
-              <p>Kepala Sekolah</p>
-              <div className="h-20 flex items-center">
-                {isApproved && settings.ttdKepsekCustomUrl ? (
-                  <img
-                    src={settings.ttdKepsekCustomUrl}
-                    alt="Tanda Tangan Kepala SMK Negeri 1 Tegalsari"
-                    className="max-h-20 w-auto object-contain mix-blend-multiply select-none"
-                  />
-                ) : null}
-              </div>
-              <p className={`font-bold ${namaKepsek ? 'underline underline-offset-2' : ''}`}>
-                {namaKepsek || '........................................'}
-              </p>
-              <p>NIP. {nipKepsek || '..................................'}</p>
-            </>
-          )}
+          <p>Mengetahui,</p>
+          <p>Kepala SMK Negeri 1 Tegalsari</p>
+          <div className="relative h-20 flex items-center">
+            {isApproved && (
+              <img
+                src={ttdSrc}
+                alt="Tanda Tangan dan Stempel Kepala SMK Negeri 1 Tegalsari"
+                className="h-24 w-auto max-w-none object-contain mix-blend-multiply -ml-2 pointer-events-none select-none"
+              />
+            )}
+          </div>
+          <p className="relative z-10 font-bold underline underline-offset-2">
+            {namaKepsek}
+          </p>
+          <p className="relative z-10 tabular-nums">NIP. {nipKepsek}</p>
         </div>
 
         {/* Sebelah Kanan: Guru / Yang Menyatakan */}
         <div className="text-left pl-6">
           <p>Banyuwangi, {tglPengajuanIndo}</p>
           <p>Yang menyatakan,</p>
-          <div className="h-[1.55em]" aria-hidden="true" />
           <div className="h-20" />
           <p className="font-bold underline underline-offset-2">{namaGuru}</p>
-          <p>NIP. {nipGuru}</p>
+          <p className="tabular-nums">NIP. {nipGuru}</p>
         </div>
       </div>
     </div>

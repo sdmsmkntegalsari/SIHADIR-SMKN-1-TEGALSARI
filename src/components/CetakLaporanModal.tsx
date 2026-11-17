@@ -3,7 +3,6 @@ import { X, Printer, Download } from 'lucide-react';
 import { Pegawai, StatusKehadiranHarian } from '../types/attendance';
 import { INFO_SEKOLAH } from '../data/mockData';
 import { getLupaAbsenSettings } from '../utils/storage';
-import { isUsingDefaultTtdBlock } from '../utils/lupaAbsenPdf';
 
 interface CetakLaporanModalProps {
   isOpen: boolean;
@@ -188,47 +187,33 @@ export const CetakLaporanModal: React.FC<CetakLaporanModalProps> = ({
             {/* Tanda Tangan: Kepala Sekolah Kiri, Koord Waka SDM Kanan */}
             {(() => {
               const settings = getLupaAbsenSettings();
-              const useDefaultFullBlock = isUsingDefaultTtdBlock(settings);
+              const ttdSrc = settings.ttdKepsekCustomUrl || INFO_SEKOLAH.ttdKepsekDefaultUrl;
               return (
                 <div className="mt-8 pt-4 flex justify-between items-start text-xs break-inside-avoid">
                   {/* Sebelah Kiri: Kepala Sekolah */}
                   <div className="text-left">
-                    <div className="h-[1.4em]" aria-hidden="true" />
-                    {useDefaultFullBlock ? (
+                    <p className="text-slate-700">Mengetahui,</p>
+                    <p className="text-slate-700">Kepala SMK Negeri 1 Tegalsari,</p>
+                    <div className="relative h-16 flex items-center">
                       <img
-                        src={INFO_SEKOLAH.ttdKepsekDefaultUrl}
-                        alt="Mengetahui Kepala SMK Negeri 1 Tegalsari - Candra Suro Laksono, S.Pi"
-                        className="w-[215px] max-w-full h-auto object-contain mix-blend-multiply -ml-2 -mt-1 select-none"
+                        src={ttdSrc}
+                        alt="Tanda Tangan dan Stempel Kepala SMK Negeri 1 Tegalsari"
+                        className="h-20 w-auto max-w-none object-contain mix-blend-multiply -ml-2 pointer-events-none select-none"
                       />
-                    ) : (
-                      <>
-                        <p className="text-slate-700">Mengetahui,</p>
-                        <p className="text-slate-700">Kepala Sekolah,</p>
-                        <div className="h-14 flex items-center">
-                          {settings.ttdKepsekCustomUrl ? (
-                            <img
-                              src={settings.ttdKepsekCustomUrl}
-                              alt="Tanda Tangan Kepala SMK Negeri 1 Tegalsari"
-                              className="max-h-14 w-auto object-contain mix-blend-multiply select-none"
-                            />
-                          ) : null}
-                        </div>
-                        <p className="font-bold text-slate-900 underline">
-                          {settings.namaKepalaSekolah || INFO_SEKOLAH.kepalaSekolah}
-                        </p>
-                        <p className="text-slate-500 font-mono text-[10px]">
-                          NIP. {settings.nipKepalaSekolah || INFO_SEKOLAH.nipKepalaSekolah}
-                        </p>
-                      </>
-                    )}
+                    </div>
+                    <p className="relative z-10 font-bold text-slate-900 underline">
+                      {settings.namaKepalaSekolah || INFO_SEKOLAH.kepalaSekolah}
+                    </p>
+                    <p className="relative z-10 text-slate-500 font-mono text-[10px]">
+                      NIP. {settings.nipKepalaSekolah || INFO_SEKOLAH.nipKepalaSekolah}
+                    </p>
                   </div>
 
                   {/* Sebelah Kanan: Banyuwangi + Koordinator Waka SDM */}
                   <div className="text-left min-w-[210px]">
                     <p className="text-slate-700">Banyuwangi, {formatDateIndo(selectedDate)}</p>
                     <p className="text-slate-700">Koordinator Waka SDM,</p>
-                    <div className="h-[1.4em]" aria-hidden="true" />
-                    <div className="h-14" />
+                    <div className="h-16" />
                     <p className="font-bold text-slate-900 underline">{INFO_SEKOLAH.koordinatorSdm}</p>
                     <p className="text-slate-500 font-mono text-[10px]">
                       NIP. {INFO_SEKOLAH.nipKoordinatorSdm}

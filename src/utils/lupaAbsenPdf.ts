@@ -61,19 +61,6 @@ export const getFullPegawaiName = (pegawai?: Pegawai | null): string => {
 };
 
 /**
- * Mengecek apakah pengaturan Kepsek masih memakai blok stempel & TTD resmi bawaan
- * (/assets/aistudio/image_328916eb.png yang sudah memuat Mengetahui, Kepala Sekolah, TTD, Stempel, Nama, & NIP).
- */
-export const isUsingDefaultTtdBlock = (settings: LupaAbsenSettings): boolean => {
-  if (settings.ttdKepsekCustomUrl) return false;
-  const namaLower = settings.namaKepalaSekolah.trim().toLowerCase();
-  const nipClean = settings.nipKepalaSekolah.trim();
-  const namaMatch = !namaLower || namaLower.includes('candra suro laksono');
-  const nipMatch = !nipClean || nipClean === INFO_SEKOLAH.nipKepalaSekolah;
-  return namaMatch && nipMatch;
-};
-
-/**
  * Helper menggambar Kop Surat Resmi SMKN 1 Tegalsari di dokumen jsPDF.
  * Mengembalikan koordinat Y setelah garis kop surat.
  */
@@ -150,8 +137,8 @@ const drawKopSuratPdf = async (
 };
 
 /**
- * Menggambar kolom tanda tangan Kepala Sekolah di jsPDF.
- * Jika isApproved === true, stempel & tanda tangan Kepsek otomatis dicetak.
+ * Menggambar kolom tanda tangan Kepala Sekolah di jsPDF secara sejajar dengan kolom kanan.
+ * Jika isApproved === true, stempel & tanda tangan Kepsek otomatis dicetak di area tanda tangan.
  */
 const drawKepsekSignatureColumnPdf = async (
   doc: jsPDF,
@@ -160,64 +147,36 @@ const drawKepsekSignatureColumnPdf = async (
   startY: number,
   isApproved: boolean
 ): Promise<void> => {
-  const namaKepsek = settings.namaKepalaSekolah.trim() || '........................................';
-  const pangkatKepsek = (settings.pangkatKepalaSekolah || '').trim();
-  const nipKepsek = settings.nipKepalaSekolah.trim() || '..................................';
-  const useDefaultFullBlock = isUsingDefaultTtdBlock(settings);
-
-  if (isApproved && useDefaultFullBlock) {
-    try {
-      const ttdPng = await imageSourceToPngDataUrl(
-        INFO_SEKOLAH.ttdKepsekDefaultUrl,
-        495,
-        262
-      );
-      // Gambar blok resmi Kepsek (sudah memuat Mengetahui, Kepala Sekolah, stempel, TTD, nama, & NIP)
-      doc.addImage(ttdPng, 'PNG', colX - 3, startY - 3, 72, 38.1);
-      return;
-    } catch {
-      // Fallback ke teks jika gambar gagal dimuat
-    }
-  }
+  const namaKepsek = settings.namaKepalaSekolah.trim() || INFO_SEKOLAH.kepalaSekolah;
+  const nipKepsek = settings.nipKepalaSekolah.trim() || INFO_SEKOLAH.nipKepalaSekolah;
 
   doc.setFont('times', 'normal');
   doc.setFontSize(11.5);
   doc.text('Mengetahui,', colX, startY);
+  doc.text('Kepala SMK Negeri 1 Tegalsari', colX, startY + 6);
 
-  let y = startY + 5.5;
-  doc.text('Kepala Sekolah', colX, y);
-
-  if (isApproved && settings.ttdKepsekCustomUrl) {
+  if (isApproved) {
+    const ttdSrc = settings.ttdKepsekCustomUrl || INFO_SEKOLAH.ttdKepsekDefaultUrl;
     try {
-      const customTtdPng = await imageSourceToPngDataUrl(
-        settings.ttdKepsekCustomUrl,
-        480,
-        240
-      );
-      doc.addImage(customTtdPng, 'PNG', colX, y + 2, 46, 20);
+      const ttdPng = await imageSourceToPngDataUrl(ttdSrc, 495, 262);
+      // Proporsi 495:262 (~1.89:1) -> lebar 48mm, tinggi 25.4mm pas di ruang tanda tangan
+      doc.addImage(ttdPng, 'PNG', colX - 2, startY + 8, 48, 25.4);
     } catch {
       // Abaikan jika gagal konversi
     }
   }
 
-  y += 24;
+  const nameY = startY + 35.5;
   doc.setFont('times', 'bold');
   const kepsekLines = doc.splitTextToSize(namaKepsek, 68);
-  doc.text(kepsekLines, colX, y);
+  doc.text(kepsekLines, colX, nameY);
 
-  if (settings.namaKepalaSekolah.trim()) {
-    const wK = Math.min(68, doc.getTextWidth(kepsekLines[0]));
-    doc.setLineWidth(0.3);
-    doc.line(colX, y + 1, colX + wK, y + 1);
-  }
+  const wK = Math.min(68, doc.getTextWidth(kepsekLines[0]));
+  doc.setLineWidth(0.3);
+  doc.line(colX, nameY + 1, colX + wK, nameY + 1);
 
-  y += kepsekLines.length * 5.2 + 0.6;
   doc.setFont('times', 'normal');
-  if (pangkatKepsek) {
-    doc.text(pangkatKepsek, colX, y);
-    y += 5;
-  }
-  doc.text(`NIP. ${nipKepsek}`, colX, y);
+  doc.text(`NIP. ${nipKepsek}`, colX, nameY + kepsekLines.length * 5.2 + 0.8);
 };
 
 /**
@@ -330,17 +289,14 @@ export const downloadSuratLupaAbsenPdf = async (
   const tglPengajuanIndo = formatJakartaDateIndo(item.tanggalPengajuan);
   const isApproved = item.status === 'disetujui';
 
-  doc.setFont('times', 'normal');
-  doc.text(`Banyuwangi, ${tglPengajuanIndo}`, rightSigX, y);
-  y += 6;
-
   // Kiri: Kepala Sekolah (Otomatis muncul TTD & Stempel jika sudah disetujui)
   await drawKepsekSignatureColumnPdf(doc, settings, leftSigX, y, isApproved);
 
   // Kanan: Yang menyatakan (Guru / Pegawai)
   doc.setFont('times', 'normal');
-  doc.text('Yang menyatakan,', rightSigX, y);
-  const guruNameY = y + 29.5;
+  doc.text(`Banyuwangi, ${tglPengajuanIndo}`, rightSigX, y);
+  doc.text('Yang menyatakan,', rightSigX, y + 6);
+  const guruNameY = y + 35.5;
   doc.setFont('times', 'bold');
   const guruLines = doc.splitTextToSize(namaGuru, 68);
   doc.text(guruLines, rightSigX, guruNameY);
@@ -512,7 +468,7 @@ export const downloadSuratIzinPdf = async (
   const isApproved = izin.status === 'disetujui';
 
   // Kiri: Kepala Sekolah (otomatis TTD & stempel jika disetujui)
-  await drawKepsekSignatureColumnPdf(doc, settings, leftSigX, y + 6, isApproved);
+  await drawKepsekSignatureColumnPdf(doc, settings, leftSigX, y, isApproved);
 
   // Kanan: Banyuwangi + Koordinator Waka SDM
   doc.setFont('times', 'normal');

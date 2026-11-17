@@ -14,7 +14,7 @@ export const INFO_SEKOLAH = {
   kepalaSekolah: 'Candra Suro Laksono, S.Pi',
   pangkatKepalaSekolah: 'Penata Tk. I, III/d',
   nipKepalaSekolah: '198409252011011011',
-  ttdKepsekDefaultUrl: '/assets/aistudio/image_328916eb.png',
+  ttdKepsekDefaultUrl: '/assets/ttd_stempel_kepsek.png',
   koordinatorSdm: 'Bambang Sugiharto, S.Kom., M.Pd.',
   nipKoordinatorSdm: '198001012005011001',
 };

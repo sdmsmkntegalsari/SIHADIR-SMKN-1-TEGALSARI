@@ -97,3 +97,42 @@ export interface AttendanceFilterState {
   tipe: 'all' | 'guru' | 'pegawai';
   tanggal: string; // YYYY-MM-DD
 }
+
+export type JenisLupaAbsen = 'masuk' | 'pulang' | 'masuk_dan_pulang';
+
+export type StatusLupaAbsen =
+  | 'draft'
+  | 'menunggu_persetujuan'
+  | 'disetujui'
+  | 'ditolak';
+
+export interface PengajuanLupaAbsen {
+  id: string;
+  pegawaiId: string; // Relasi ke Pegawai.id
+  tanggalKejadian: string; // YYYY-MM-DD
+  jenisPresensi: JenisLupaAbsen;
+  jamKejadian?: string; // Opsional, e.g. '07:15'
+  kronologi: string;
+  pernyataanKebenaran: boolean;
+  status: StatusLupaAbsen;
+  tanggalPengajuan: string; // YYYY-MM-DD (Asia/Jakarta)
+  waktuPengajuan: string; // YYYY-MM-DD HH:mm (Asia/Jakarta)
+  catatanAdmin?: string;
+  diprosesOlehId?: string;
+  diprosesOlehNama?: string;
+  diprosesOlehJabatan?: string;
+  waktuPersetujuan?: string; // YYYY-MM-DD HH:mm (Asia/Jakarta)
+  updatedAt?: string;
+}
+
+export interface LupaAbsenSettings {
+  namaKepalaSekolah: string;
+  pangkatKepalaSekolah?: string;
+  nipKepalaSekolah: string;
+  logoJatimCustomUrl?: string;
+  logoSekolahCustomUrl?: string;
+  ttdKepsekCustomUrl?: string;
+  updatedAt?: string;
+  updatedBy?: string;
+}
+

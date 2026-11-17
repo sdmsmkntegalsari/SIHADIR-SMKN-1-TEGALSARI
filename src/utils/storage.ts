@@ -3,9 +3,13 @@ import {
   PermintaanIzin, 
   StatusKehadiranHarian, 
   MainCategory, 
-  SubCategory 
+  SubCategory,
+  PengajuanLupaAbsen,
+  JenisLupaAbsen,
+  LupaAbsenSettings
 } from '../types/attendance';
-import { INITIAL_PEGAWAI, INITIAL_IZIN } from '../data/mockData';
+import { INITIAL_PEGAWAI, INITIAL_IZIN, INITIAL_LUPA_ABSEN, INFO_SEKOLAH } from '../data/mockData';
+import { getJakartaTodayISO, getJakartaTimestamp } from './dateJakarta';
 
 const STORAGE_KEYS = {
   PEGAWAI: 'smkn1_tegalsari_pegawai',
@@ -13,6 +17,8 @@ const STORAGE_KEYS = {
   OVERRIDES: 'smkn1_tegalsari_overrides',
   CURRENT_USER: 'smkn1_tegalsari_current_user',
   PASSWORDS: 'smkn1_tegalsari_passwords', // Mapping NIP -> password
+  LUPA_ABSEN: 'smkn1_tegalsari_lupa_absen',
+  LUPA_ABSEN_SETTINGS: 'smkn1_tegalsari_lupa_absen_settings',
 };
 
 // Inisialisasi data pegawai
@@ -24,12 +30,20 @@ export const getStoredPegawai = (): Pegawai[] => {
       return INITIAL_PEGAWAI;
     }
     const parsed: Pegawai[] = JSON.parse(raw);
-    // Ensure roles for key leadership (Kepala Sekolah, Wakasek) are updated to pimpinan if they had legacy role
+    // Ensure roles & default Kepala Sekolah profile are synced
     let hasChanges = false;
     const updated = parsed.map(p => {
-      if (p.id === 'peg-02' && p.role !== 'pimpinan') {
+      if (p.id === 'peg-02' && (p.role !== 'pimpinan' || p.nama === 'Gatot Koco')) {
         hasChanges = true;
-        return { ...p, role: 'pimpinan' as const };
+        return {
+          ...p,
+          nip: INFO_SEKOLAH.nipKepalaSekolah,
+          nama: 'Candra Suro Laksono',
+          gelarDepan: '',
+          gelarBelakang: 'S.Pi',
+          pangkatGolongan: 'Penata Tk. I / III/d',
+          role: 'pimpinan' as const,
+        };
       }
       if (p.id === 'peg-03' && p.role !== 'pimpinan') {
         hasChanges = true;
@@ -386,7 +400,225 @@ export const changeUserPassword = (nip: string, newPass: string): void => {
 export const resetToDefaultData = (): void => {
   localStorage.setItem(STORAGE_KEYS.PEGAWAI, JSON.stringify(INITIAL_PEGAWAI));
   localStorage.setItem(STORAGE_KEYS.IZIN, JSON.stringify(INITIAL_IZIN));
+  localStorage.setItem(STORAGE_KEYS.LUPA_ABSEN, JSON.stringify(INITIAL_LUPA_ABSEN));
   localStorage.removeItem(STORAGE_KEYS.OVERRIDES);
   localStorage.removeItem(STORAGE_KEYS.PASSWORDS);
   localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(INITIAL_PEGAWAI[0]));
 };
+
+// ==========================================
+// FITUR LUPA ABSEN - STORAGE & KEAMANAN
+// ==========================================
+
+export const getStoredLupaAbsen = (): PengajuanLupaAbsen[] => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.LUPA_ABSEN);
+    if (!raw) {
+      localStorage.setItem(STORAGE_KEYS.LUPA_ABSEN, JSON.stringify(INITIAL_LUPA_ABSEN));
+      return INITIAL_LUPA_ABSEN;
+    }
+    return JSON.parse(raw);
+  } catch (e) {
+    console.error('Error reading lupa absen from localStorage', e);
+    return INITIAL_LUPA_ABSEN;
+  }
+};
+
+export const saveLupaAbsenList = (list: PengajuanLupaAbsen[]): void => {
+  localStorage.setItem(STORAGE_KEYS.LUPA_ABSEN, JSON.stringify(list));
+};
+
+/**
+ * Cek pengajuan ganda pada tanggal kejadian yang sama untuk guru/pegawai yang sama.
+ * Mengizinkan tanggal berbeda atau mengajukan ulang jika pengajuan sebelumnya berstatus 'ditolak'.
+ */
+export const findDuplicateLupaAbsen = (
+  pegawaiId: string,
+  tanggalKejadian: string,
+  jenisPresensi: JenisLupaAbsen,
+  excludeId?: string
+): PengajuanLupaAbsen | undefined => {
+  const list = getStoredLupaAbsen();
+  return list.find(item => {
+    if (excludeId && item.id === excludeId) return false;
+    if (item.pegawaiId !== pegawaiId) return false;
+    if (item.tanggalKejadian !== tanggalKejadian) return false;
+    if (item.status === 'ditolak') return false;
+
+    // Jenis sama persis atau salah satunya mencakup masuk & pulang
+    if (
+      item.jenisPresensi === jenisPresensi ||
+      item.jenisPresensi === 'masuk_dan_pulang' ||
+      jenisPresensi === 'masuk_dan_pulang'
+    ) {
+      return true;
+    }
+    return false;
+  });
+};
+
+export const upsertPengajuanLupaAbsen = (
+  payload: {
+    id?: string;
+    pegawaiId: string;
+    tanggalKejadian: string;
+    jenisPresensi: JenisLupaAbsen;
+    jamKejadian?: string;
+    kronologi: string;
+    pernyataanKebenaran: boolean;
+    status: 'draft' | 'menunggu_persetujuan';
+  }
+): PengajuanLupaAbsen => {
+  const current = getStoredLupaAbsen();
+  const nowDate = getJakartaTodayISO();
+  const nowTimestamp = getJakartaTimestamp();
+
+  if (payload.id) {
+    const existing = current.find(item => item.id === payload.id);
+    if (existing) {
+      if (existing.pegawaiId !== payload.pegawaiId) {
+        throw new Error('Akses ditolak: Anda hanya dapat mengubah pengajuan milik Anda sendiri.');
+      }
+      if (existing.status !== 'draft') {
+        throw new Error('Hanya pengajuan berstatus Draft yang dapat diubah.');
+      }
+      const updatedItem: PengajuanLupaAbsen = {
+        ...existing,
+        tanggalKejadian: payload.tanggalKejadian,
+        jenisPresensi: payload.jenisPresensi,
+        jamKejadian: payload.jamKejadian?.trim() || undefined,
+        kronologi: payload.kronologi.trim(),
+        pernyataanKebenaran: payload.pernyataanKebenaran,
+        status: payload.status,
+        tanggalPengajuan: payload.status === 'menunggu_persetujuan' ? nowDate : existing.tanggalPengajuan,
+        waktuPengajuan: payload.status === 'menunggu_persetujuan' ? nowTimestamp : existing.waktuPengajuan,
+        updatedAt: nowTimestamp,
+      };
+      const updatedList = current.map(item => (item.id === payload.id ? updatedItem : item));
+      saveLupaAbsenList(updatedList);
+      return updatedItem;
+    }
+  }
+
+  const newItem: PengajuanLupaAbsen = {
+    id: `lupa-${Date.now()}`,
+    pegawaiId: payload.pegawaiId,
+    tanggalKejadian: payload.tanggalKejadian,
+    jenisPresensi: payload.jenisPresensi,
+    jamKejadian: payload.jamKejadian?.trim() || undefined,
+    kronologi: payload.kronologi.trim(),
+    pernyataanKebenaran: payload.pernyataanKebenaran,
+    status: payload.status,
+    tanggalPengajuan: nowDate,
+    waktuPengajuan: nowTimestamp,
+    updatedAt: nowTimestamp,
+  };
+
+  saveLupaAbsenList([newItem, ...current]);
+  return newItem;
+};
+
+export const updateStatusLupaAbsen = (
+  id: string,
+  status: 'disetujui' | 'ditolak',
+  admin: Pegawai,
+  catatanAdmin?: string
+): PengajuanLupaAbsen | null => {
+  if (admin.role !== 'admin' && admin.role !== 'pimpinan') {
+    throw new Error('Akses ditolak: Hanya Admin atau Pimpinan yang dapat memproses pengajuan.');
+  }
+  const current = getStoredLupaAbsen();
+  const nowTimestamp = getJakartaTimestamp();
+  const adminFullName = `${admin.gelarDepan ? admin.gelarDepan + ' ' : ''}${admin.nama}${admin.gelarBelakang ? ', ' + admin.gelarBelakang : ''}`;
+
+  let updatedRecord: PengajuanLupaAbsen | null = null;
+  const updated = current.map(item => {
+    if (item.id === id) {
+      updatedRecord = {
+        ...item,
+        status,
+        catatanAdmin: catatanAdmin?.trim() || undefined,
+        diprosesOlehId: admin.id,
+        diprosesOlehNama: adminFullName,
+        diprosesOlehJabatan: admin.jabatan,
+        waktuPersetujuan: nowTimestamp,
+        updatedAt: nowTimestamp,
+      };
+      return updatedRecord;
+    }
+    return item;
+  });
+
+  saveLupaAbsenList(updated);
+  return updatedRecord;
+};
+
+export const deleteLupaAbsenDraft = (id: string, requester: Pegawai): void => {
+  const current = getStoredLupaAbsen();
+  const target = current.find(item => item.id === id);
+  if (!target) return;
+  if (target.pegawaiId !== requester.id && requester.role !== 'admin') {
+    throw new Error('Akses ditolak: Anda hanya boleh menghapus pengajuan milik sendiri.');
+  }
+  if (target.status !== 'draft' && requester.role !== 'admin') {
+    throw new Error('Hanya draft yang dapat dihapus.');
+  }
+  saveLupaAbsenList(current.filter(item => item.id !== id));
+};
+
+export const getLupaAbsenSettings = (): LupaAbsenSettings => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.LUPA_ABSEN_SETTINGS);
+    if (!raw) {
+      return {
+        namaKepalaSekolah: INFO_SEKOLAH.kepalaSekolah,
+        pangkatKepalaSekolah: INFO_SEKOLAH.pangkatKepalaSekolah,
+        nipKepalaSekolah: INFO_SEKOLAH.nipKepalaSekolah,
+      };
+    }
+    const parsed = JSON.parse(raw) as LupaAbsenSettings;
+    const rawNama = (parsed.namaKepalaSekolah || '').trim();
+    const isLegacyKepsek = !rawNama || rawNama.toLowerCase().includes('gatot');
+    return {
+      namaKepalaSekolah: isLegacyKepsek ? INFO_SEKOLAH.kepalaSekolah : rawNama,
+      pangkatKepalaSekolah: isLegacyKepsek
+        ? INFO_SEKOLAH.pangkatKepalaSekolah
+        : parsed.pangkatKepalaSekolah || INFO_SEKOLAH.pangkatKepalaSekolah,
+      nipKepalaSekolah: isLegacyKepsek
+        ? INFO_SEKOLAH.nipKepalaSekolah
+        : parsed.nipKepalaSekolah || INFO_SEKOLAH.nipKepalaSekolah,
+      logoJatimCustomUrl: parsed.logoJatimCustomUrl || undefined,
+      logoSekolahCustomUrl: parsed.logoSekolahCustomUrl || undefined,
+      ttdKepsekCustomUrl: parsed.ttdKepsekCustomUrl || undefined,
+      updatedAt: parsed.updatedAt,
+      updatedBy: parsed.updatedBy,
+    };
+  } catch (e) {
+    return {
+      namaKepalaSekolah: INFO_SEKOLAH.kepalaSekolah,
+      pangkatKepalaSekolah: INFO_SEKOLAH.pangkatKepalaSekolah,
+      nipKepalaSekolah: INFO_SEKOLAH.nipKepalaSekolah,
+    };
+  }
+};
+
+export const saveLupaAbsenSettings = (
+  settings: LupaAbsenSettings,
+  admin?: Pegawai
+): LupaAbsenSettings => {
+  const toSave: LupaAbsenSettings = {
+    namaKepalaSekolah: settings.namaKepalaSekolah.trim(),
+    pangkatKepalaSekolah: settings.pangkatKepalaSekolah?.trim() || '',
+    nipKepalaSekolah: settings.nipKepalaSekolah.trim(),
+    logoJatimCustomUrl: settings.logoJatimCustomUrl,
+    logoSekolahCustomUrl: settings.logoSekolahCustomUrl,
+    ttdKepsekCustomUrl: settings.ttdKepsekCustomUrl,
+    updatedAt: getJakartaTimestamp(),
+    updatedBy: admin
+      ? `${admin.gelarDepan ? admin.gelarDepan + ' ' : ''}${admin.nama}${admin.gelarBelakang ? ', ' + admin.gelarBelakang : ''}`
+      : settings.updatedBy,
+  };
+  localStorage.setItem(STORAGE_KEYS.LUPA_ABSEN_SETTINGS, JSON.stringify(toSave));
+  return toSave;
+};
+

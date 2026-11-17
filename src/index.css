@@ -13,7 +13,15 @@
   }
 }
 
+.print-surat-portal {
+  display: none;
+}
+
 @media print {
+  @page {
+    size: A4 portrait;
+    margin: 14mm 18mm;
+  }
   .no-print {
     display: none !important;
   }
@@ -23,5 +31,13 @@
   body {
     background: white !important;
     color: black !important;
+  }
+  body[data-print-mode="surat-lupa-absen"] #root,
+  body[data-print-mode="surat-izin"] #root {
+    display: none !important;
+  }
+  body[data-print-mode="surat-lupa-absen"] .print-surat-portal,
+  body[data-print-mode="surat-izin"] .print-surat-portal {
+    display: block !important;
   }
 }

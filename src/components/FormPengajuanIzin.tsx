@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Send, 
   UploadCloud, 
@@ -27,12 +27,14 @@ interface FormPengajuanIzinProps {
   currentUser: Pegawai;
   allPegawai: Pegawai[];
   onSuccessSubmit: () => void;
+  embedded?: boolean;
 }
 
 export const FormPengajuanIzin: React.FC<FormPengajuanIzinProps> = ({
   currentUser,
   allPegawai,
   onSuccessSubmit,
+  embedded = false,
 }) => {
   // If admin, can submit for any employee or self; if teacher, submits for self
   const [selectedPegawaiId, setSelectedPegawaiId] = useState<string>(currentUser.id);
@@ -60,10 +62,12 @@ export const FormPengajuanIzin: React.FC<FormPengajuanIzinProps> = ({
 
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submitSuccess, setSubmitSuccess] = useState<boolean>(false);
-  const [submittedStatus, setSubmittedStatus] = useState<'disetujui' | 'menunggu'>('menunggu');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const isApprover = currentUser.role === 'admin' || currentUser.role === 'pimpinan';
-  const [directApprove, setDirectApprove] = useState<boolean>(isApprover);
+
+  useEffect(() => {
+    setSelectedPegawaiId(currentUser.id);
+  }, [currentUser.id]);
 
   // Hitung jumlah hari kerja
   const calculateDays = () => {
@@ -115,25 +119,6 @@ export const FormPengajuanIzin: React.FC<FormPengajuanIzinProps> = ({
     }
   };
 
-  // Quick helper to attach a standardized official sample document
-  const handleAttachTemplate = () => {
-    let docTitle = 'Surat_Tugas_Resmi_SMKN1Tegalsari.pdf';
-    if (kategori === 'cuti') {
-      docTitle = subKategori === 'Cuti Sakit' 
-        ? 'Surat_Keterangan_Sakit_Dokter.pdf' 
-        : 'Formulir_Permohonan_Cuti_Pegawai.pdf';
-    } else if (kategori === 'pendidikan_pelatihan') {
-      docTitle = 'Surat_Pemanggilan_Diklat_Pelatihan.pdf';
-    }
-    
-    setFileObject({
-      nama: docTitle,
-      type: 'application/pdf',
-      size: '1.4 MB',
-      url: 'data:application/pdf;base64,JVBERi0xLjQKJcTl8uXr...',
-    });
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
@@ -149,12 +134,11 @@ export const FormPengajuanIzin: React.FC<FormPengajuanIzinProps> = ({
     }
 
     if (!fileObject) {
-      setErrorMessage('Harap unggah berkas pendukung (Surat Tugas, Surat Cuti, atau Surat Keterangan Sakit). Anda juga dapat klik tombol "Gunakan Dokumen Contoh Resmi" di bawah kolom upload.');
+      setErrorMessage('Harap unggah berkas pendukung (Surat Tugas, Surat Cuti, atau Surat Keterangan Sakit) dari perangkat Anda.');
       return;
     }
 
     const targetPegawai = allPegawai.find(p => p.id === selectedPegawaiId) || currentUser;
-    const finalStatus: 'disetujui' | 'menunggu' = isApprover && directApprove ? 'disetujui' : 'menunggu';
 
     setIsSubmitting(true);
 
@@ -176,12 +160,9 @@ export const FormPengajuanIzin: React.FC<FormPengajuanIzinProps> = ({
         berkasType: fileObject.type,
         berkasSize: fileObject.size,
         berkasUrl: fileObject.url,
-        status: finalStatus,
-        diverifikasiOleh: finalStatus === 'disetujui' ? `${currentUser.nama} (${currentUser.role === 'pimpinan' ? 'Pimpinan' : 'Admin SDM'})` : undefined,
-        catatanAdmin: finalStatus === 'disetujui' ? `Disetujui langsung oleh ${currentUser.nama}` : undefined,
+        status: 'menunggu',
       });
 
-      setSubmittedStatus(finalStatus);
       setIsSubmitting(false);
       setSubmitSuccess(true);
       setTimeout(() => {
@@ -196,43 +177,30 @@ export const FormPengajuanIzin: React.FC<FormPengajuanIzinProps> = ({
   const selectedTarget = allPegawai.find(p => p.id === selectedPegawaiId) || currentUser;
 
   return (
-    <div className="max-w-4xl mx-auto py-6 px-4 sm:px-6">
-      {/* Page Header */}
-      <div className="mb-6">
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-          Formulir Pengajuan Permintaan Izin / Dinas / Cuti
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-600 mt-1">
-          Pengajuan izin resmi Guru & Pegawai SMKN 1 Tegalsari. Status kehadiran otomatis berubah setelah diverifikasi dan disetujui oleh Admin SDM atau Pimpinan Sekolah.
-        </p>
-      </div>
+    <div className={embedded ? 'max-w-4xl' : 'max-w-4xl mx-auto py-6 px-4 sm:px-6'}>
+      {!embedded && (
+        <div className="mb-6">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+            Formulir Pengajuan Permintaan Izin / Dinas / Cuti
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-600 mt-1">
+            Pengajuan izin resmi Guru & Pegawai SMKN 1 Tegalsari. Status kehadiran baru berubah setelah di-ACC oleh Admin atau Kepala Sekolah.
+          </p>
+        </div>
+      )}
 
       {submitSuccess ? (
-        <div className="bg-white border border-emerald-200 rounded-xl p-8 text-center shadow-xs">
-          <div className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 ${
-            submittedStatus === 'disetujui' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'
-          }`}>
-            <CheckCircle2 className="w-8 h-8" />
+        <div className="bg-white border border-amber-200 rounded-xl p-8 text-center shadow-xs">
+          <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 bg-amber-100 text-amber-600">
+            <Clock className="w-8 h-8" />
           </div>
           <h2 className="text-lg font-bold text-slate-900">
-            {submittedStatus === 'disetujui'
-              ? 'Permintaan Izin Disetujui & Aktif!'
-              : 'Permintaan Izin Terkirim (Menunggu Verifikasi)'}
+            Permintaan Izin Terkirim (Menunggu ACC)
           </h2>
           <p className="text-sm text-slate-600 mt-1 max-w-md mx-auto">
-            {submittedStatus === 'disetujui' ? (
-              <>
-                Status kehadiran <strong>{selectedTarget.nama}</strong> pada tanggal{' '}
-                <span className="font-mono font-bold text-slate-900">{tanggalMulai}</span> s/d{' '}
-                <span className="font-mono font-bold text-slate-900">{tanggalSelesai}</span> secara otomatis telah diperbarui menjadi <strong>{subKategori}</strong>.
-              </>
-            ) : (
-              <>
-                Pengajuan <strong>{subKategori}</strong> untuk <strong>{selectedTarget.nama}</strong> pada tanggal{' '}
-                <span className="font-mono font-bold text-slate-900">{tanggalMulai}</span> s/d{' '}
-                <span className="font-mono font-bold text-slate-900">{tanggalSelesai}</span> telah dikirim dan menunggu persetujuan <strong>Admin SDM / Pimpinan Sekolah</strong>.
-              </>
-            )}
+            Pengajuan <strong>{subKategori}</strong> untuk <strong>{selectedTarget.nama}</strong> pada tanggal{' '}
+            <span className="font-mono font-bold text-slate-900">{tanggalMulai}</span> s/d{' '}
+            <span className="font-mono font-bold text-slate-900">{tanggalSelesai}</span> telah dikirim dan harus di-ACC terlebih dahulu oleh <strong>Admin atau Kepala Sekolah</strong> sebelum status kehadiran berubah.
           </p>
           <p className="text-xs text-slate-500 mt-4">
             Mengalihkan ke Dashboard Presensi...
@@ -245,9 +213,9 @@ export const FormPengajuanIzin: React.FC<FormPengajuanIzinProps> = ({
             <Info className="w-5 h-5 text-blue-700 shrink-0 mt-0.5" />
             <div className="text-xs text-blue-900 leading-relaxed">
               <span className="font-semibold block text-blue-950">
-                Alur Persetujuan & Otomasi Presensi SMKN 1 Tegalsari:
+                Alur Persetujuan (ACC) & Otomasi Presensi SMKN 1 Tegalsari:
               </span>
-              Setiap harinya seluruh guru dan pegawai terjadwal hadir otomatis. Pengajuan izin dari guru/pegawai yang telah dilengkapi berkas akan masuk ke antrean verifikasi dan <strong>otomatis mengubah status kehadiran</strong> setelah diverifikasi/disetujui oleh <strong>Admin SDM atau Pimpinan</strong>.
+              Setiap harinya seluruh guru dan pegawai terjadwal hadir otomatis. Pengajuan izin dari guru/pegawai yang telah dilengkapi berkas wajib masuk ke antrean verifikasi dan <strong>harus di-ACC terlebih dahulu oleh Admin atau Kepala Sekolah</strong> sebelum status kehadiran berubah.
             </div>
           </div>
 
@@ -565,61 +533,21 @@ export const FormPengajuanIzin: React.FC<FormPengajuanIzinProps> = ({
                     <p className="text-[11px] text-slate-400 mt-2">
                       Format yang didukung: PDF, JPG, PNG (Maksimal 5MB)
                     </p>
-
-                    {/* Quick attach template button */}
-                    <div className="mt-4 pt-4 border-t border-slate-200 w-full max-w-sm">
-                      <p className="text-[11px] text-slate-500 mb-2">
-                        Belum memiliki dokumen di perangkat?
-                      </p>
-                      <button
-                        type="button"
-                        onClick={handleAttachTemplate}
-                        className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
-                      >
-                        <FileCheck className="w-3.5 h-3.5" />
-                        <span>Gunakan Dokumen Contoh Resmi SMKN 1 Tegalsari</span>
-                      </button>
-                    </div>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Opsi Verifikasi Langsung khusus Admin & Pimpinan */}
-            {isApprover && (
-              <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs font-bold text-slate-800">
-                    Verifikasi & Persetujuan Langsung ({currentUser.role === 'pimpinan' ? 'Pimpinan' : 'Admin SDM'})
-                  </p>
-                  <p className="text-[11px] text-slate-500">
-                    Aktifkan agar izin langsung disetujui dan mengubah status kehadiran secara otomatis.
-                  </p>
-                </div>
-                <label className="inline-flex items-center gap-2 cursor-pointer shrink-0">
-                  <input
-                    type="checkbox"
-                    checked={directApprove}
-                    onChange={(e) => setDirectApprove(e.target.checked)}
-                    className="w-4 h-4 accent-blue-900 rounded"
-                  />
-                  <span className="text-xs font-semibold text-slate-800">Langsung Setujui</span>
-                </label>
-              </div>
-            )}
-
             {/* Tombol Kirim */}
             <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="text-xs text-slate-500">
-                {isApprover && directApprove
-                  ? 'Izin akan langsung disetujui dan memperbarui status kehadiran.'
-                  : 'Pengajuan akan dikirim ke Admin SDM & Pimpinan untuk diverifikasi terlebih dahulu.'}
+                Pengajuan akan dikirim untuk di-ACC terlebih dahulu oleh Admin atau Kepala Sekolah.
               </div>
 
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 text-xs font-bold text-white bg-blue-900 hover:bg-blue-800 active:bg-blue-950 rounded-lg transition-colors shadow-sm disabled:opacity-60"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 text-xs font-bold text-white bg-blue-900 hover:bg-blue-800 active:bg-blue-950 rounded-lg transition-colors shadow-sm disabled:opacity-60 whitespace-nowrap"
               >
                 <Send className="w-4 h-4" />
                 <span>{isSubmitting ? 'Memproses Pengajuan...' : 'Kirim Permintaan Izin'}</span>

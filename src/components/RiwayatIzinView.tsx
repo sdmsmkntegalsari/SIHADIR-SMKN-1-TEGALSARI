@@ -11,10 +11,13 @@ import {
   ExternalLink,
   Plus,
   Building,
-  User
+  User,
+  Printer,
+  Download
 } from 'lucide-react';
 import { PermintaanIzin, Pegawai, MainCategory } from '../types/attendance';
-import { getStoredIzin, updateStatusIzin, deleteIzin } from '../utils/storage';
+import { getStoredIzin, updateStatusIzin, deleteIzin, getLupaAbsenSettings } from '../utils/storage';
+import { downloadSuratIzinPdf } from '../utils/lupaAbsenPdf';
 import { FilePreviewModal } from './FilePreviewModal';
 
 interface RiwayatIzinViewProps {
@@ -294,20 +297,37 @@ export const RiwayatIzinView: React.FC<RiwayatIzinViewProps> = ({
                         )}
                       </td>
 
-                      {/* Berkas */}
+                      {/* Berkas & Surat */}
                       <td className="py-3 px-3.5 text-center">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setPreviewIzin(item);
-                            setIsPreviewOpen(true);
-                          }}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-blue-800 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors shadow-2xs whitespace-nowrap"
-                          title="Buka Dokumen Resmi"
-                        >
-                          <Paperclip className="w-3 h-3 text-blue-700" />
-                          <span>Lihat Berkas</span>
-                        </button>
+                        <div className="flex flex-wrap items-center justify-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPreviewIzin(item);
+                              setIsPreviewOpen(true);
+                            }}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-blue-800 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors shadow-2xs whitespace-nowrap"
+                            title={item.status === 'disetujui' ? 'Lihat & Cetak Surat (TTD Kepsek Aktif)' : 'Buka Pratinjau Surat'}
+                          >
+                            {item.status === 'disetujui' ? (
+                              <Printer className="w-3 h-3 text-blue-700" />
+                            ) : (
+                              <Paperclip className="w-3 h-3 text-blue-700" />
+                            )}
+                            <span>{item.status === 'disetujui' ? 'Cetak Surat' : 'Lihat Surat'}</span>
+                          </button>
+                          {item.status === 'disetujui' && (
+                            <button
+                              type="button"
+                              onClick={() => downloadSuratIzinPdf(item, getLupaAbsenSettings())}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-white bg-blue-900 hover:bg-blue-800 rounded-md transition-colors whitespace-nowrap"
+                              title="Unduh Surat PDF Resmi dengan TTD & Stempel Kepsek"
+                            >
+                              <Download className="w-3 h-3" />
+                              <span>PDF</span>
+                            </button>
+                          )}
+                        </div>
                       </td>
 
                       {/* Status */}
@@ -321,7 +341,7 @@ export const RiwayatIzinView: React.FC<RiwayatIzinViewProps> = ({
                         {item.status === 'menunggu' && (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 whitespace-nowrap">
                             <Clock className="w-3 h-3" />
-                            <span>Menunggu</span>
+                            <span>Menunggu ACC</span>
                           </span>
                         )}
                         {item.status === 'ditolak' && (
@@ -341,10 +361,10 @@ export const RiwayatIzinView: React.FC<RiwayatIzinViewProps> = ({
                                 type="button"
                                 onClick={() => handleApprove(item.id)}
                                 className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold text-white bg-emerald-700 hover:bg-emerald-800 rounded-md transition-colors whitespace-nowrap"
-                                title="Setujui Pengajuan Izin"
+                                title="ACC / Setujui Pengajuan Izin"
                               >
                                 <CheckCircle className="w-3 h-3" />
-                                <span>Setujui</span>
+                                <span>ACC / Setujui</span>
                               </button>
                               <button
                                 type="button"

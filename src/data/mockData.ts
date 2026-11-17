@@ -11,8 +11,10 @@ export const INFO_SEKOLAH = {
   kabupaten: 'Banyuwangi',
   provinsi: 'Jawa Timur',
   cabangDinas: 'Cabang Dinas Pendidikan Wilayah Kabupaten Banyuwangi',
-  kepalaSekolah: 'Drs. Gatot Koco, M.M.',
-  nipKepalaSekolah: '197204121998021003',
+  kepalaSekolah: 'Candra Suro Laksono, S.Pi',
+  pangkatKepalaSekolah: 'Penata Tk. I, III/d',
+  nipKepalaSekolah: '198409252011011011',
+  ttdKepsekDefaultUrl: '/assets/aistudio/image_328916eb.png',
   koordinatorSdm: 'Bambang Sugiharto, S.Kom., M.Pd.',
   nipKoordinatorSdm: '198001012005011001',
 };
@@ -36,14 +38,14 @@ export const INITIAL_PEGAWAI: Pegawai[] = [
   },
   {
     id: 'peg-02',
-    nip: '197204121998021003',
-    nama: 'Gatot Koco',
-    gelarDepan: 'Drs.',
-    gelarBelakang: 'M.M.',
+    nip: '198409252011011011',
+    nama: 'Candra Suro Laksono',
+    gelarDepan: '',
+    gelarBelakang: 'S.Pi',
     jabatan: 'Kepala Sekolah',
     unitKerja: 'Pimpinan Sekolah',
     tipe: 'guru',
-    pangkatGolongan: 'Pembina Utama Muda / IV/c',
+    pangkatGolongan: 'Penata Tk. I / III/d',
     email: 'kepsek@smkn1tegalsari.sch.id',
     noHp: '081122334455',
     jenisKelamin: 'L',
@@ -625,3 +627,49 @@ export const INITIAL_IZIN: PermintaanIzin[] = [
     tanggalPengajuan: `${getFormattedDate(0)} 06:30`,
   },
 ];
+
+export const KOP_SURAT_RESMI = {
+  pemerintah: 'PEMERINTAH PROVINSI JAWA TIMUR',
+  dinas: 'DINAS PENDIDIKAN',
+  sekolah: 'SMK NEGERI 1 TEGALSARI',
+  alamat: 'Jalan KH. Abdul Majid No.09, Tegalsari, Banyuwangi, Jawa Timur 68491',
+  telepon: 'Telepon (0333) 2811000',
+  laman: 'http://www.smkn1tegalsari.sch.id',
+  posEl: 'smkn1tegalsaribwi@gmail.com',
+  npsn: '20540177',
+};
+
+export const INITIAL_LUPA_ABSEN = [
+  {
+    id: 'lupa-01',
+    pegawaiId: 'peg-07',
+    tanggalKejadian: getFormattedDate(-2),
+    jenisPresensi: 'masuk' as const,
+    jamKejadian: '06:55',
+    kronologi:
+      'Pada pagi hari tersebut saya tiba di sekolah pukul 06.55 WIB dan langsung menyiapkan perangkat laboratorium RPL untuk pelaksanaan praktik kelas XII sebelum bel masuk berbunyi, sehingga terlewat melakukan presensi masuk pada sistem SI-HADIR.',
+    pernyataanKebenaran: true,
+    status: 'menunggu_persetujuan' as const,
+    tanggalPengajuan: getFormattedDate(-1),
+    waktuPengajuan: `${getFormattedDate(-1)} 08:15`,
+  },
+  {
+    id: 'lupa-02',
+    pegawaiId: 'peg-16',
+    tanggalKejadian: getFormattedDate(-4),
+    jenisPresensi: 'pulang' as const,
+    jamKejadian: '15:30',
+    kronologi:
+      'Setelah jam mengajar terakhir selesai pada pukul 15.30 WIB, saya langsung mendampingi siswa kelas XI dalam kegiatan persiapan lomba literasi tingkat kabupaten hingga sore hari sehingga lupa melakukan presensi pulang.',
+    pernyataanKebenaran: true,
+    status: 'disetujui' as const,
+    tanggalPengajuan: getFormattedDate(-3),
+    waktuPengajuan: `${getFormattedDate(-3)} 07:40`,
+    catatanAdmin: 'Telah dikonfirmasi dengan jadwal piket dan kegiatan literasi sekolah.',
+    diprosesOlehId: 'peg-01',
+    diprosesOlehNama: 'Bambang Sugiharto, S.Kom., M.Pd.',
+    diprosesOlehJabatan: 'Koordinator Kepegawaian & SDM / Guru TKJ',
+    waktuPersetujuan: `${getFormattedDate(-3)} 10:05`,
+  },
+];
+

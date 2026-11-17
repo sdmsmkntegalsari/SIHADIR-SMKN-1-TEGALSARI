@@ -5,9 +5,9 @@ import {
   getStoredPegawai 
 } from './utils/storage';
 import { Pegawai, Role } from './types/attendance';
-import { HeaderNavbar } from './components/HeaderNavbar';
+import { HeaderNavbar, AppTab } from './components/HeaderNavbar';
 import { DashboardView } from './components/DashboardView';
-import { FormPengajuanIzin } from './components/FormPengajuanIzin';
+import { AjukanIzinHub } from './components/AjukanIzinHub';
 import { RiwayatIzinView } from './components/RiwayatIzinView';
 import { RekapitulasiView } from './components/RekapitulasiView';
 import { KelolaPegawaiView } from './components/KelolaPegawaiView';
@@ -18,7 +18,7 @@ import { INFO_SEKOLAH } from './data/mockData';
 export default function App() {
   const [currentUser, setCurrentUser] = useState<Pegawai | null>(() => getCurrentUser());
   const [allPegawai, setAllPegawai] = useState<Pegawai[]>(() => getStoredPegawai());
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'izin' | 'riwayat' | 'rekap' | 'pegawai'>('dashboard');
+  const [activeTab, setActiveTab] = useState<AppTab>('dashboard');
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
   const [isCreateAccountModalOpen, setIsCreateAccountModalOpen] = useState<boolean>(false);
   const [createAccountInitialRole, setCreateAccountInitialRole] = useState<Role>('admin');
@@ -75,10 +75,10 @@ export default function App() {
         )}
 
         {activeTab === 'izin' && (
-          <FormPengajuanIzin
+          <AjukanIzinHub
             currentUser={currentUser || allPegawai[0]}
             allPegawai={allPegawai}
-            onSuccessSubmit={() => {
+            onSuccessSubmitIzin={() => {
               refreshAllData();
               setActiveTab('dashboard');
             }}

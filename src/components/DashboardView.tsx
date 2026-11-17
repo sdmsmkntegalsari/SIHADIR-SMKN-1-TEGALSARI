@@ -338,10 +338,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div>
             <h4 className="text-xs font-bold uppercase tracking-wider text-blue-200">
-              Otomasi Presensi Harian & Verifikasi Berjenjang
+              Otomasi Presensi Harian & Persetujuan (ACC) Berjenjang
             </h4>
             <p className="text-xs text-blue-50/90 leading-tight mt-0.5">
-              Seluruh guru & pegawai terjadwal otomatis <strong>Hadir/Masuk</strong> setiap harinya. Pengajuan izin oleh guru/pegawai harus <strong>diverifikasi dan disetujui Admin SDM atau Pimpinan</strong> sebelum status kehadiran otomatis berubah.
+              Seluruh guru & pegawai terjadwal otomatis <strong>Hadir/Masuk</strong> setiap harinya. Pengajuan izin oleh guru/pegawai harus <strong>di-ACC terlebih dahulu oleh Admin atau Kepala Sekolah (Pimpinan)</strong> sebelum status kehadiran otomatis berubah.
             </p>
           </div>
         </div>
@@ -351,21 +351,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
-      {/* Antrean Verifikasi Izin (Admin & Pimpinan) */}
+      {/* Antrean Verifikasi / ACC Izin (Admin & Kepala Sekolah) */}
       {isApprover && pendingIzins.length > 0 && (
         <div className="bg-white rounded-xl border border-amber-200 shadow-2xs overflow-hidden">
           <div className="px-4 py-3 bg-amber-50/70 border-b border-amber-200 flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-amber-700 shrink-0" />
               <h3 className="text-xs font-bold text-amber-950 uppercase tracking-wider">
-                Antrean Verifikasi Pengajuan Izin
+                Antrean ACC Pengajuan Izin (Admin / Kepala Sekolah)
               </h3>
               <span className="text-xs font-mono font-bold text-amber-800 tabular-nums">
-                · {pendingIzins.length} menunggu persetujuan
+                · {pendingIzins.length} menunggu ACC
               </span>
             </div>
             <span className="text-[11px] text-amber-800">
-              Setujui untuk mengaktifkan perubahan status kehadiran otomatis
+              Klik ACC / Setujui untuk mengaktifkan perubahan status kehadiran
             </span>
           </div>
 
@@ -418,7 +418,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     className="inline-flex items-center gap-1 px-3 py-1.5 text-[11px] font-bold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg transition-colors whitespace-nowrap shrink-0"
                   >
                     <Check className="w-3.5 h-3.5" />
-                    <span>Setujui</span>
+                    <span>ACC / Setujui</span>
                   </button>
                 </div>
               </div>
@@ -433,9 +433,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="flex items-start sm:items-center gap-2.5">
             <Clock className="w-4 h-4 text-amber-700 shrink-0 mt-0.5 sm:mt-0" />
             <div className="text-xs text-amber-950">
-              <span className="font-bold">Pengajuan Izin Anda Sedang Diverifikasi:</span>{' '}
+              <span className="font-bold">Pengajuan Izin Anda Menunggu ACC:</span>{' '}
               <span>
-                {userPendingIzins.map(u => `${u.subKategori} (${u.tanggalMulai} s/d ${u.tanggalSelesai})`).join(', ')}. Status presensi Anda tetap terjadwal Hadir hingga disetujui Admin SDM atau Pimpinan.
+                {userPendingIzins.map(u => `${u.subKategori} (${u.tanggalMulai} s/d ${u.tanggalSelesai})`).join(', ')}. Status presensi Anda tetap terjadwal Hadir hingga di-ACC oleh Admin atau Kepala Sekolah.
               </span>
             </div>
           </div>

@@ -8,15 +8,17 @@ import {
   FileCheck2, 
   CalendarDays, 
   UserCheck, 
-  Send 
+  Send
 } from 'lucide-react';
 import { Pegawai } from '../types/attendance';
+
+export type AppTab = 'dashboard' | 'izin' | 'riwayat' | 'rekap' | 'pegawai';
 
 interface HeaderNavbarProps {
   currentUser: Pegawai | null;
   allPegawai: Pegawai[];
-  activeTab: 'dashboard' | 'izin' | 'riwayat' | 'rekap' | 'pegawai';
-  onSelectTab: (tab: 'dashboard' | 'izin' | 'riwayat' | 'rekap' | 'pegawai') => void;
+  activeTab: AppTab;
+  onSelectTab: (tab: AppTab) => void;
   onSwitchUser: (user: Pegawai) => void;
   onLogout: () => void;
   onOpenLogin: () => void;
@@ -63,11 +65,11 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
             </div>
           </div>
 
-          {/* Zone 2: 4-5 Clean single-line navigation links */}
-          <nav className="hidden md:flex items-center gap-1 lg:gap-2 text-sm font-medium">
+          {/* Zone 2: Clean single-line navigation links */}
+          <nav className="hidden md:flex items-center gap-1 text-xs lg:text-sm font-medium">
             <button
               onClick={() => onSelectTab('dashboard')}
-              className={`px-3 py-1.5 rounded-md transition-colors whitespace-nowrap ${
+              className={`px-2.5 py-1.5 rounded-md transition-colors whitespace-nowrap shrink-0 ${
                 activeTab === 'dashboard'
                   ? 'bg-blue-50 text-blue-900 font-semibold'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
@@ -78,7 +80,7 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
 
             <button
               onClick={() => onSelectTab('izin')}
-              className={`px-3 py-1.5 rounded-md transition-colors whitespace-nowrap inline-flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-md transition-colors whitespace-nowrap shrink-0 inline-flex items-center gap-1.5 ${
                 activeTab === 'izin'
                   ? 'bg-blue-50 text-blue-900 font-semibold'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
@@ -90,7 +92,7 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
 
             <button
               onClick={() => onSelectTab('riwayat')}
-              className={`px-3 py-1.5 rounded-md transition-colors whitespace-nowrap ${
+              className={`px-2.5 py-1.5 rounded-md transition-colors whitespace-nowrap shrink-0 ${
                 activeTab === 'riwayat'
                   ? 'bg-blue-50 text-blue-900 font-semibold'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
@@ -101,7 +103,7 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
 
             <button
               onClick={() => onSelectTab('rekap')}
-              className={`px-3 py-1.5 rounded-md transition-colors whitespace-nowrap ${
+              className={`px-2.5 py-1.5 rounded-md transition-colors whitespace-nowrap shrink-0 ${
                 activeTab === 'rekap'
                   ? 'bg-blue-50 text-blue-900 font-semibold'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
@@ -112,7 +114,7 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
 
             <button
               onClick={() => onSelectTab('pegawai')}
-              className={`px-3 py-1.5 rounded-md transition-colors whitespace-nowrap ${
+              className={`px-2.5 py-1.5 rounded-md transition-colors whitespace-nowrap shrink-0 ${
                 activeTab === 'pegawai'
                   ? 'bg-blue-50 text-blue-900 font-semibold'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
@@ -263,10 +265,10 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
       </div>
 
       {/* Mobile Subnav */}
-      <div className="md:hidden flex items-center justify-around border-t border-slate-200 bg-slate-50 px-2 py-1.5 text-xs">
+      <div className="md:hidden flex items-center gap-1 overflow-x-auto border-t border-slate-200 bg-slate-50 px-2 py-1.5 text-xs">
         <button
           onClick={() => onSelectTab('dashboard')}
-          className={`px-2.5 py-1 rounded font-medium ${
+          className={`px-2.5 py-1 rounded font-medium whitespace-nowrap shrink-0 ${
             activeTab === 'dashboard' ? 'bg-blue-100 text-blue-900 font-bold' : 'text-slate-600'
           }`}
         >
@@ -274,7 +276,7 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
         </button>
         <button
           onClick={() => onSelectTab('izin')}
-          className={`px-2.5 py-1 rounded font-medium ${
+          className={`px-2.5 py-1 rounded font-medium whitespace-nowrap shrink-0 ${
             activeTab === 'izin' ? 'bg-blue-100 text-blue-900 font-bold' : 'text-slate-600'
           }`}
         >
@@ -282,7 +284,7 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
         </button>
         <button
           onClick={() => onSelectTab('riwayat')}
-          className={`px-2.5 py-1 rounded font-medium ${
+          className={`px-2.5 py-1 rounded font-medium whitespace-nowrap shrink-0 ${
             activeTab === 'riwayat' ? 'bg-blue-100 text-blue-900 font-bold' : 'text-slate-600'
           }`}
         >
@@ -290,7 +292,7 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
         </button>
         <button
           onClick={() => onSelectTab('rekap')}
-          className={`px-2.5 py-1 rounded font-medium ${
+          className={`px-2.5 py-1 rounded font-medium whitespace-nowrap shrink-0 ${
             activeTab === 'rekap' ? 'bg-blue-100 text-blue-900 font-bold' : 'text-slate-600'
           }`}
         >
@@ -298,7 +300,7 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
         </button>
         <button
           onClick={() => onSelectTab('pegawai')}
-          className={`px-2.5 py-1 rounded font-medium ${
+          className={`px-2.5 py-1 rounded font-medium whitespace-nowrap shrink-0 ${
             activeTab === 'pegawai' ? 'bg-blue-100 text-blue-900 font-bold' : 'text-slate-600'
           }`}
         >

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   getCurrentUser, 
   saveCurrentUser, 
-  getStoredPegawai 
+  getStoredPegawai,
+  getLupaAbsenSettings
 } from './utils/storage';
 import { Pegawai, Role } from './types/attendance';
 import { HeaderNavbar, AppTab } from './components/HeaderNavbar';
@@ -11,6 +12,7 @@ import { AjukanIzinHub } from './components/AjukanIzinHub';
 import { RiwayatIzinView } from './components/RiwayatIzinView';
 import { RekapitulasiView } from './components/RekapitulasiView';
 import { KelolaPegawaiView } from './components/KelolaPegawaiView';
+import { LogoSettingsView } from './components/LogoSettingsView';
 import { LoginModal } from './components/LoginModal';
 import { ModalBuatAkun } from './components/ModalBuatAkun';
 import { INFO_SEKOLAH } from './data/mockData';
@@ -23,10 +25,14 @@ export default function App() {
   const [isCreateAccountModalOpen, setIsCreateAccountModalOpen] = useState<boolean>(false);
   const [createAccountInitialRole, setCreateAccountInitialRole] = useState<Role>('admin');
   const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
+  const [schoolLogoUrl, setSchoolLogoUrl] = useState<string | undefined>(
+    () => getLupaAbsenSettings().logoSekolahCustomUrl
+  );
 
-  // Refresh pegawai list whenever updated
+  // Refresh pegawai & settings whenever updated
   const refreshAllData = () => {
     setAllPegawai(getStoredPegawai());
+    setSchoolLogoUrl(getLupaAbsenSettings().logoSekolahCustomUrl);
     setRefreshTrigger(prev => prev + 1);
   };
 
@@ -62,6 +68,7 @@ export default function App() {
         onLogout={handleLogout}
         onOpenLogin={() => setIsLoginModalOpen(true)}
         onOpenCreateAccount={() => handleOpenCreateAccount('admin')}
+        schoolLogoUrl={schoolLogoUrl}
       />
 
       {/* Main Content Area */}
@@ -106,6 +113,14 @@ export default function App() {
             allPegawai={allPegawai}
             onRefreshData={refreshAllData}
             onOpenCreateAccount={handleOpenCreateAccount}
+          />
+        )}
+
+        {activeTab === 'logo' && (
+          <LogoSettingsView
+            key={refreshTrigger}
+            currentUser={currentUser || allPegawai[0]}
+            onSettingsUpdated={refreshAllData}
           />
         )}
       </main>

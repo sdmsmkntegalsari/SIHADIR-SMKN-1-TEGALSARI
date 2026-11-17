@@ -129,9 +129,12 @@ export interface LupaAbsenSettings {
   namaKepalaSekolah: string;
   pangkatKepalaSekolah?: string;
   nipKepalaSekolah: string;
+  namaKoordinatorSdm?: string;
+  nipKoordinatorSdm?: string;
   logoJatimCustomUrl?: string;
   logoSekolahCustomUrl?: string;
   ttdKepsekCustomUrl?: string;
+  ttdKoordinatorSdmCustomUrl?: string;
   updatedAt?: string;
   updatedBy?: string;
 }

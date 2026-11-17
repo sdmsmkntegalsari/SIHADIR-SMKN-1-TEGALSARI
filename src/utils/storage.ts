@@ -574,6 +574,8 @@ export const getLupaAbsenSettings = (): LupaAbsenSettings => {
         namaKepalaSekolah: INFO_SEKOLAH.kepalaSekolah,
         pangkatKepalaSekolah: INFO_SEKOLAH.pangkatKepalaSekolah,
         nipKepalaSekolah: INFO_SEKOLAH.nipKepalaSekolah,
+        namaKoordinatorSdm: INFO_SEKOLAH.koordinatorSdm,
+        nipKoordinatorSdm: INFO_SEKOLAH.nipKoordinatorSdm,
       };
     }
     const parsed = JSON.parse(raw) as LupaAbsenSettings;
@@ -587,9 +589,12 @@ export const getLupaAbsenSettings = (): LupaAbsenSettings => {
       nipKepalaSekolah: isLegacyKepsek
         ? INFO_SEKOLAH.nipKepalaSekolah
         : parsed.nipKepalaSekolah || INFO_SEKOLAH.nipKepalaSekolah,
+      namaKoordinatorSdm: parsed.namaKoordinatorSdm?.trim() || INFO_SEKOLAH.koordinatorSdm,
+      nipKoordinatorSdm: parsed.nipKoordinatorSdm?.trim() || INFO_SEKOLAH.nipKoordinatorSdm,
       logoJatimCustomUrl: parsed.logoJatimCustomUrl || undefined,
       logoSekolahCustomUrl: parsed.logoSekolahCustomUrl || undefined,
       ttdKepsekCustomUrl: parsed.ttdKepsekCustomUrl || undefined,
+      ttdKoordinatorSdmCustomUrl: parsed.ttdKoordinatorSdmCustomUrl || undefined,
       updatedAt: parsed.updatedAt,
       updatedBy: parsed.updatedBy,
     };
@@ -598,6 +603,8 @@ export const getLupaAbsenSettings = (): LupaAbsenSettings => {
       namaKepalaSekolah: INFO_SEKOLAH.kepalaSekolah,
       pangkatKepalaSekolah: INFO_SEKOLAH.pangkatKepalaSekolah,
       nipKepalaSekolah: INFO_SEKOLAH.nipKepalaSekolah,
+      namaKoordinatorSdm: INFO_SEKOLAH.koordinatorSdm,
+      nipKoordinatorSdm: INFO_SEKOLAH.nipKoordinatorSdm,
     };
   }
 };
@@ -610,9 +617,14 @@ export const saveLupaAbsenSettings = (
     namaKepalaSekolah: settings.namaKepalaSekolah.trim(),
     pangkatKepalaSekolah: settings.pangkatKepalaSekolah?.trim() || '',
     nipKepalaSekolah: settings.nipKepalaSekolah.trim(),
+    namaKoordinatorSdm:
+      settings.namaKoordinatorSdm?.trim() || INFO_SEKOLAH.koordinatorSdm,
+    nipKoordinatorSdm:
+      settings.nipKoordinatorSdm?.trim() || INFO_SEKOLAH.nipKoordinatorSdm,
     logoJatimCustomUrl: settings.logoJatimCustomUrl,
     logoSekolahCustomUrl: settings.logoSekolahCustomUrl,
     ttdKepsekCustomUrl: settings.ttdKepsekCustomUrl,
+    ttdKoordinatorSdmCustomUrl: settings.ttdKoordinatorSdmCustomUrl,
     updatedAt: getJakartaTimestamp(),
     updatedBy: admin
       ? `${admin.gelarDepan ? admin.gelarDepan + ' ' : ''}${admin.nama}${admin.gelarBelakang ? ', ' + admin.gelarBelakang : ''}`

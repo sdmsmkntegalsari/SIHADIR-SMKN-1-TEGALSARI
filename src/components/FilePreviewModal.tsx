@@ -30,6 +30,11 @@ const SuratIzinA4Content: React.FC<{
   const namaKepsek = settings.namaKepalaSekolah.trim() || INFO_SEKOLAH.kepalaSekolah;
   const nipKepsek = settings.nipKepalaSekolah.trim() || INFO_SEKOLAH.nipKepalaSekolah;
   const ttdSrc = settings.ttdKepsekCustomUrl || INFO_SEKOLAH.ttdKepsekDefaultUrl;
+  const namaWakaSdm =
+    settings.namaKoordinatorSdm?.trim() || INFO_SEKOLAH.koordinatorSdm;
+  const nipWakaSdm =
+    settings.nipKoordinatorSdm?.trim() || INFO_SEKOLAH.nipKoordinatorSdm;
+  const ttdWakaSdmSrc = settings.ttdKoordinatorSdmCustomUrl;
 
   const tglSuratRaw =
     isApproved && izin.tanggalVerifikasi
@@ -207,9 +212,19 @@ const SuratIzinA4Content: React.FC<{
         <div className="text-left pl-6">
           <p>Banyuwangi, {tglSuratIndo}</p>
           <p>Koordinator Waka SDM,</p>
-          <div className="h-20" />
-          <p className="font-bold underline underline-offset-2">{INFO_SEKOLAH.koordinatorSdm}</p>
-          <p className="tabular-nums">NIP. {INFO_SEKOLAH.nipKoordinatorSdm}</p>
+          <div className="relative h-20 flex items-center">
+            {isApproved && ttdWakaSdmSrc && (
+              <img
+                src={ttdWakaSdmSrc}
+                alt="Tanda Tangan Koordinator Waka SDM"
+                className="h-20 w-auto max-w-full object-contain mix-blend-multiply -ml-1 pointer-events-none select-none"
+              />
+            )}
+          </div>
+          <p className="relative z-10 font-bold underline underline-offset-2">
+            {namaWakaSdm}
+          </p>
+          <p className="relative z-10 tabular-nums">NIP. {nipWakaSdm}</p>
         </div>
       </div>
     </div>

@@ -3,6 +3,7 @@ import { X, Printer, Download } from 'lucide-react';
 import { Pegawai, StatusKehadiranHarian } from '../types/attendance';
 import { INFO_SEKOLAH } from '../data/mockData';
 import { getLupaAbsenSettings } from '../utils/storage';
+import { LogoPemprovJatim, LogoSmknTegalsari } from './KopSuratLogos';
 
 interface CetakLaporanModalProps {
   isOpen: boolean;
@@ -83,23 +84,42 @@ export const CetakLaporanModal: React.FC<CetakLaporanModalProps> = ({
         <div className="flex-1 overflow-y-auto p-4 sm:p-8 bg-slate-200">
           <div className="bg-white p-8 sm:p-12 shadow-md rounded-lg max-w-4xl mx-auto text-slate-900 font-sans text-xs">
             {/* Kop Surat Resmi */}
-            <div className="text-center border-b-[3px] border-double border-slate-900 pb-3 mb-6">
-              <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-800">
-                Pemerintah Provinsi Jawa Timur · Dinas Pendidikan
-              </h4>
-              <h3 className="text-xs font-bold uppercase text-slate-900">
-                {INFO_SEKOLAH.cabangDinas}
-              </h3>
-              <h2 className="text-lg font-black uppercase tracking-tight text-blue-950 mt-0.5">
-                {INFO_SEKOLAH.nama}
-              </h2>
-              <p className="text-[10px] text-slate-600 mt-0.5">
-                NPSN: {INFO_SEKOLAH.npsn} · {INFO_SEKOLAH.alamat}
-              </p>
-              <p className="text-[10px] text-slate-600">
-                Telp: {INFO_SEKOLAH.telepon} · Pos-el: {INFO_SEKOLAH.email} · Website: {INFO_SEKOLAH.website}
-              </p>
-            </div>
+            {(() => {
+              const kopSettings = getLupaAbsenSettings();
+              return (
+                <div className="flex items-center justify-between gap-4 border-b-[3px] border-double border-slate-900 pb-3 mb-6">
+                  <div className="w-16 h-18 flex items-center justify-center shrink-0">
+                    <LogoPemprovJatim
+                      customUrl={kopSettings.logoJatimCustomUrl}
+                      className="w-14 h-16"
+                    />
+                  </div>
+                  <div className="flex-1 text-center">
+                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-800">
+                      Pemerintah Provinsi Jawa Timur · Dinas Pendidikan
+                    </h4>
+                    <h3 className="text-xs font-bold uppercase text-slate-900">
+                      {INFO_SEKOLAH.cabangDinas}
+                    </h3>
+                    <h2 className="text-lg font-black uppercase tracking-tight text-blue-950 mt-0.5">
+                      {INFO_SEKOLAH.nama}
+                    </h2>
+                    <p className="text-[10px] text-slate-600 mt-0.5">
+                      NPSN: {INFO_SEKOLAH.npsn} · {INFO_SEKOLAH.alamat}
+                    </p>
+                    <p className="text-[10px] text-slate-600">
+                      Telp: {INFO_SEKOLAH.telepon} · Pos-el: {INFO_SEKOLAH.email} · Website: {INFO_SEKOLAH.website}
+                    </p>
+                  </div>
+                  <div className="w-16 h-18 flex items-center justify-center shrink-0">
+                    <LogoSmknTegalsari
+                      customUrl={kopSettings.logoSekolahCustomUrl}
+                      className="w-14 h-16"
+                    />
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Title */}
             <div className="text-center mb-5">
@@ -188,6 +208,10 @@ export const CetakLaporanModal: React.FC<CetakLaporanModalProps> = ({
             {(() => {
               const settings = getLupaAbsenSettings();
               const ttdSrc = settings.ttdKepsekCustomUrl || INFO_SEKOLAH.ttdKepsekDefaultUrl;
+              const namaWakaSdm =
+                settings.namaKoordinatorSdm?.trim() || INFO_SEKOLAH.koordinatorSdm;
+              const nipWakaSdm =
+                settings.nipKoordinatorSdm?.trim() || INFO_SEKOLAH.nipKoordinatorSdm;
               return (
                 <div className="mt-8 pt-4 flex justify-between items-start text-xs break-inside-avoid">
                   {/* Sebelah Kiri: Kepala Sekolah */}
@@ -213,10 +237,20 @@ export const CetakLaporanModal: React.FC<CetakLaporanModalProps> = ({
                   <div className="text-left min-w-[210px]">
                     <p className="text-slate-700">Banyuwangi, {formatDateIndo(selectedDate)}</p>
                     <p className="text-slate-700">Koordinator Waka SDM,</p>
-                    <div className="h-16" />
-                    <p className="font-bold text-slate-900 underline">{INFO_SEKOLAH.koordinatorSdm}</p>
-                    <p className="text-slate-500 font-mono text-[10px]">
-                      NIP. {INFO_SEKOLAH.nipKoordinatorSdm}
+                    <div className="relative h-16 flex items-center">
+                      {settings.ttdKoordinatorSdmCustomUrl && (
+                        <img
+                          src={settings.ttdKoordinatorSdmCustomUrl}
+                          alt="Tanda Tangan Koordinator Waka SDM"
+                          className="h-16 w-auto max-w-full object-contain mix-blend-multiply -ml-1 pointer-events-none select-none"
+                        />
+                      )}
+                    </div>
+                    <p className="relative z-10 font-bold text-slate-900 underline">
+                      {namaWakaSdm}
+                    </p>
+                    <p className="relative z-10 text-slate-500 font-mono text-[10px]">
+                      NIP. {nipWakaSdm}
                     </p>
                   </div>
                 </div>

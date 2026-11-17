@@ -8,11 +8,12 @@ import {
   FileCheck2, 
   CalendarDays, 
   UserCheck, 
-  Send
+  Send,
+  Image as ImageIcon
 } from 'lucide-react';
 import { Pegawai } from '../types/attendance';
 
-export type AppTab = 'dashboard' | 'izin' | 'riwayat' | 'rekap' | 'pegawai';
+export type AppTab = 'dashboard' | 'izin' | 'riwayat' | 'rekap' | 'pegawai' | 'logo';
 
 interface HeaderNavbarProps {
   currentUser: Pegawai | null;
@@ -23,6 +24,7 @@ interface HeaderNavbarProps {
   onLogout: () => void;
   onOpenLogin: () => void;
   onOpenCreateAccount: () => void;
+  schoolLogoUrl?: string;
 }
 
 export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
@@ -34,6 +36,7 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
   onLogout,
   onOpenLogin,
   onOpenCreateAccount,
+  schoolLogoUrl,
 }) => {
   const [showSwitchDropdown, setShowSwitchDropdown] = useState(false);
 
@@ -52,9 +55,17 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
         <div className="flex items-center justify-between gap-8 h-16">
           {/* Zone 1: Single element brand wordmark */}
           <div className="flex items-center gap-3 shrink-0">
-            <div className="w-9 h-9 rounded-lg bg-blue-900 text-white flex items-center justify-center font-bold shadow-xs">
-              <span className="text-sm font-extrabold tracking-tighter">SMK</span>
-            </div>
+            {schoolLogoUrl ? (
+              <img
+                src={schoolLogoUrl}
+                alt="Logo SMK Negeri 1 Tegalsari"
+                className="w-9 h-9 rounded-lg object-contain bg-white border border-slate-200 p-0.5 shadow-xs shrink-0"
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-lg bg-blue-900 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+                <span className="text-sm font-extrabold tracking-tighter">SMK</span>
+              </div>
+            )}
             <div className="flex flex-col">
               <span className="text-base font-bold tracking-tight text-slate-900 whitespace-nowrap leading-none">
                 SI-HADIR SMKN 1 TEGALSARI
@@ -121,6 +132,19 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
               }`}
             >
               Pegawai & Akun
+            </button>
+
+            <button
+              onClick={() => onSelectTab('logo')}
+              className={`px-2.5 py-1.5 rounded-md transition-colors whitespace-nowrap shrink-0 inline-flex items-center gap-1.5 ${
+                activeTab === 'logo'
+                  ? 'bg-blue-50 text-blue-900 font-semibold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+              title="Logo Sekolah & Provinsi, Nama/NIP & TTD Kepsek dan Waka SDM"
+            >
+              <ImageIcon className="w-3.5 h-3.5" />
+              <span>Logo & TTD</span>
             </button>
           </nav>
 
@@ -192,7 +216,7 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
                       <p className="text-[11px] text-slate-600 truncate mt-0.5">{currentUser.jabatan}</p>
                     </div>
 
-                    <div className="p-2 border-b border-slate-100">
+                    <div className="p-2 border-b border-slate-100 space-y-1.5">
                       <button
                         onClick={() => {
                           setShowSwitchDropdown(false);
@@ -202,6 +226,16 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
                       >
                         <ShieldCheck className="w-3.5 h-3.5 text-blue-800" />
                         <span>+ Buat Akun Admin / Pimpinan</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowSwitchDropdown(false);
+                          onSelectTab('logo');
+                        }}
+                        className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-lg border border-slate-200 transition-colors"
+                      >
+                        <ImageIcon className="w-3.5 h-3.5 text-slate-600" />
+                        <span>Logo, Pejabat & TTD Surat</span>
                       </button>
                     </div>
 
@@ -305,6 +339,14 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
           }`}
         >
           Pegawai
+        </button>
+        <button
+          onClick={() => onSelectTab('logo')}
+          className={`px-2.5 py-1 rounded font-medium whitespace-nowrap shrink-0 ${
+            activeTab === 'logo' ? 'bg-blue-100 text-blue-900 font-bold' : 'text-slate-600'
+          }`}
+        >
+          Logo & TTD
         </button>
       </div>
     </header>

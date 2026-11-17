@@ -442,8 +442,10 @@ export const LupaAbsenView: React.FC<LupaAbsenViewProps> = ({
 
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
+    const latest = getLupaAbsenSettings();
     const saved = saveLupaAbsenSettings(
       {
+        ...latest,
         namaKepalaSekolah: kepsekNamaInput,
         pangkatKepalaSekolah: kepsekPangkatInput,
         nipKepalaSekolah: kepsekNipInput,

@@ -470,20 +470,39 @@ export const downloadSuratIzinPdf = async (
   // Kiri: Kepala Sekolah (otomatis TTD & stempel jika disetujui)
   await drawKepsekSignatureColumnPdf(doc, settings, leftSigX, y, isApproved);
 
-  // Kanan: Banyuwangi + Koordinator Waka SDM
+  // Kanan: Banyuwangi + Koordinator Waka SDM (otomatis TTD jika disetujui & tersedia)
+  const namaWakaSdm =
+    settings.namaKoordinatorSdm?.trim() || INFO_SEKOLAH.koordinatorSdm;
+  const nipWakaSdm =
+    settings.nipKoordinatorSdm?.trim() || INFO_SEKOLAH.nipKoordinatorSdm;
+
   doc.setFont('times', 'normal');
   doc.text(`Banyuwangi, ${tglSuratIndo}`, rightSigX, y);
   doc.text('Koordinator Waka SDM,', rightSigX, y + 6);
+
+  if (isApproved && settings.ttdKoordinatorSdmCustomUrl) {
+    try {
+      const ttdWakaPng = await imageSourceToPngDataUrl(
+        settings.ttdKoordinatorSdmCustomUrl,
+        420,
+        210
+      );
+      doc.addImage(ttdWakaPng, 'PNG', rightSigX - 1, y + 8.5, 44, 22);
+    } catch {
+      // Abaikan jika gagal konversi
+    }
+  }
+
   const koordNameY = y + 35.5;
   doc.setFont('times', 'bold');
-  const koordLines = doc.splitTextToSize(INFO_SEKOLAH.koordinatorSdm, 68);
+  const koordLines = doc.splitTextToSize(namaWakaSdm, 68);
   doc.text(koordLines, rightSigX, koordNameY);
   const wK = Math.min(68, doc.getTextWidth(koordLines[0]));
   doc.setLineWidth(0.3);
   doc.line(rightSigX, koordNameY + 1, rightSigX + wK, koordNameY + 1);
   doc.setFont('times', 'normal');
   doc.text(
-    `NIP. ${INFO_SEKOLAH.nipKoordinatorSdm}`,
+    `NIP. ${nipWakaSdm}`,
     rightSigX,
     koordNameY + koordLines.length * 5.2 + 0.8
   );
